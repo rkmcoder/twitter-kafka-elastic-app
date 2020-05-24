@@ -83,11 +83,15 @@ public class TwitterProducer {
 		properties.setProperty(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
 
 		// create safe Producer
-		properties.setProperty(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, "true");
-		properties.setProperty(ProducerConfig.ACKS_CONFIG, "all");//idempotence default
+		properties.setProperty(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, IDEMPOTENCE);
+		properties.setProperty(ProducerConfig.ACKS_CONFIG, ACKS);//idempotence default
 		properties.setProperty(ProducerConfig.RETRIES_CONFIG, String.valueOf(Integer.MAX_VALUE));//idempotence default
-		properties.setProperty(ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, "5");//idempotence default - controls how many producer requests can be made a parallel to a single broker.
+		properties.setProperty(ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION, MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION);//idempotence default - controls how many producer requests can be made a parallel to a single broker.
 
+		// high throughput producer (at the expense of a bit of latency and CPU usage)
+		properties.setProperty(ProducerConfig.COMPRESSION_TYPE_CONFIG, COMPRESSION);
+		properties.setProperty(ProducerConfig.LINGER_MS_CONFIG, LINGER_MS);
+		properties.setProperty(ProducerConfig.BATCH_SIZE_CONFIG, String.valueOf(BATCH_SIZE * 1024));
 		KafkaProducer<String, String> producer = new KafkaProducer<>(properties);
 		return producer;
 	}

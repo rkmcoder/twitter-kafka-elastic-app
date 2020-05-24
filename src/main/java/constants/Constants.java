@@ -18,5 +18,11 @@ public class Constants {
 	//Kafka config
 	public static final String BOOTSTRAP_SERVER = "localhost:9092";
 	public static final String TOPIC = "twitter_tweets";
+	public static final String IDEMPOTENCE = "true";
+	public static final String ACKS = "all";
+	public static final String MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION = "5";
+	public static final String COMPRESSION = "snappy";
+	public static final String LINGER_MS = "20";
+	public static final Integer BATCH_SIZE = 32; //in KB
 
 }
