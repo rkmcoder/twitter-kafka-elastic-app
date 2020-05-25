@@ -9,6 +9,8 @@ import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.elasticsearch.ElasticsearchException;
+import org.elasticsearch.action.bulk.BulkRequest;
+import org.elasticsearch.action.bulk.BulkResponse;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.client.RequestOptions;
@@ -36,24 +38,33 @@ public class TwitterElasticConsumer {
 		while(true) {
 			ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(100));
 			log.info("Received " + records.count() + " records");
+			BulkRequest bulkRequest = new BulkRequest();
 			for(ConsumerRecord<String, String> record : records) {
 				try{
 					IndexRequest indexRequest = new IndexRequest(Constants.INDEX)
 							.source(record.value(), XContentType.JSON)
 							.id(getIdFromTweet(record));//Idempotent consumer
-					log.info(indexRequest.toString());
-					IndexResponse indexResponse = restHighLevelClient.index(indexRequest, RequestOptions.DEFAULT);
-					log.info(indexResponse.getId());
+					log.info("Adding this request to bulk: {}", indexRequest.getDescription());
+					bulkRequest.add(indexRequest);
+//					IndexResponse indexResponse = restHighLevelClient.index(indexRequest, RequestOptions.DEFAULT);
+//					log.info(indexResponse.getId());
 				}
 				catch (NullPointerException e){
 					log.warn("Skipping bad data from twitter...{}", record.value());
 				}
-				catch (ElasticsearchException e){
-					log.error("Elastic Search error occurred", e);
+			}
+			try{
+				if(bulkRequest.numberOfActions() > 0) {
+					BulkResponse bulkResponse = restHighLevelClient.bulk(bulkRequest, RequestOptions.DEFAULT);
+					log.info("Bulk request status: {}", bulkResponse.status());
+					consumer.commitSync(); // commit offset manually
+					log.info("Offset is committed");
 				}
 			}
-			consumer.commitSync();
-			log.info("Offset is committed");
+			catch (ElasticsearchException e){
+				log.error("Elastic Search error occurred", e);
+			}
+
 		}
 
 	}
