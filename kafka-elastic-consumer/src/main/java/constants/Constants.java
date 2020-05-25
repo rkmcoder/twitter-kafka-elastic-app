@@ -13,6 +13,8 @@ public class Constants {
 	public static final String TOPIC = "twitter_tweets";
 	public static final String CONSUMER_GROUP = "twitter-consumer-group";
 	public static final String AUTO_OFFSET_RESET = "earliest";
+	public static final String ENABLE_AUTO_COMMIT = "false";
+	public static final String MAX_POLL_RECORDS = "10";
 
 
 

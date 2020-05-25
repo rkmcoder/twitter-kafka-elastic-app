@@ -8,6 +8,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.serialization.StringDeserializer;
+import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.client.RequestOptions;
@@ -34,14 +35,25 @@ public class TwitterElasticConsumer {
 		KafkaConsumer<String, String> consumer = createKafkaConsumer(TOPIC);
 		while(true) {
 			ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(100));
+			log.info("Received " + records.count() + " records");
 			for(ConsumerRecord<String, String> record : records) {
-				IndexRequest indexRequest = new IndexRequest(Constants.INDEX)
-						.source(record.value(), XContentType.JSON)
-						.id(getIdFromTweet(record));
-				log.info(indexRequest.toString());
-				IndexResponse indexResponse = restHighLevelClient.index(indexRequest, RequestOptions.DEFAULT);
-				log.info(indexResponse.getId());
+				try{
+					IndexRequest indexRequest = new IndexRequest(Constants.INDEX)
+							.source(record.value(), XContentType.JSON)
+							.id(getIdFromTweet(record));//Idempotent consumer
+					log.info(indexRequest.toString());
+					IndexResponse indexResponse = restHighLevelClient.index(indexRequest, RequestOptions.DEFAULT);
+					log.info(indexResponse.getId());
+				}
+				catch (NullPointerException e){
+					log.warn("Skipping bad data from twitter...{}", record.value());
+				}
+				catch (ElasticsearchException e){
+					log.error("Elastic Search error occurred", e);
+				}
 			}
+			consumer.commitSync();
+			log.info("Offset is committed");
 		}
 
 	}
@@ -65,6 +77,8 @@ public class TwitterElasticConsumer {
 		properties.setProperty(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
 		properties.setProperty(ConsumerConfig.GROUP_ID_CONFIG, CONSUMER_GROUP);
 		properties.setProperty(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, AUTO_OFFSET_RESET);
+		properties.setProperty(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, ENABLE_AUTO_COMMIT); // disable auto commit of offsets
+		properties.setProperty(ConsumerConfig.MAX_POLL_RECORDS_CONFIG, MAX_POLL_RECORDS); // commit offset only after consuming 10 records
 
 		KafkaConsumer<String,String> consumer = new KafkaConsumer<>(properties);
 		consumer.subscribe(Arrays.asList(topic));
