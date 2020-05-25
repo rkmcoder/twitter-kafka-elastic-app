@@ -8,5 +8,12 @@ public class Constants {
 	public static final String SCHEME = "http";
 	public static final String INDEX = "twitter";
 
+	//Kafka Consumer config
+	public static final String BOOTSTRAP_SERVER = "localhost:9092";
+	public static final String TOPIC = "twitter_tweets";
+	public static final String CONSUMER_GROUP = "twitter-consumer-group";
+	public static final String AUTO_OFFSET_RESET = "earliest";
+
+
 
 }

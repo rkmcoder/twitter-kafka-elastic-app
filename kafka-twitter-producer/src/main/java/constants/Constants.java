@@ -15,7 +15,7 @@ public class Constants {
 	//Search terms for tweets
 	public static final List<String> terms = Lists.newArrayList("coronavirus", "covid-19");
 
-	//Kafka config
+	//Kafka Producer config
 	public static final String BOOTSTRAP_SERVER = "localhost:9092";
 	public static final String TOPIC = "twitter_tweets";
 	public static final String IDEMPOTENCE = "true";
