@@ -1,3 +1,5 @@
 .idea
 target/
 twitter-kafka-elastic-app.iml
+kafka-twitter-producer/kafka-twitter-producer.iml
+kafka-elastic-consumer/kafka-elastic-consumer.iml

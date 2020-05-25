@@ -2,7 +2,6 @@ package kafka;
 
 import com.twitter.hbc.ClientBuilder;
 import com.twitter.hbc.core.Client;
-import com.twitter.hbc.core.Constants;
 import com.twitter.hbc.core.Hosts;
 import com.twitter.hbc.core.HttpHosts;
 import com.twitter.hbc.core.endpoint.StatusesFilterEndpoint;
@@ -19,6 +18,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
+import static com.twitter.hbc.core.Constants.STREAM_HOST;
 import static constants.Constants.*;
 
 public class TwitterProducer {
@@ -98,7 +98,7 @@ public class TwitterProducer {
 
 	public Client createTwitterClient(BlockingQueue<String> msgQueue) {
 
-		Hosts hosebirdHosts = new HttpHosts(Constants.STREAM_HOST);
+		Hosts hosebirdHosts = new HttpHosts(STREAM_HOST);
 		StatusesFilterEndpoint hosebirdEndpoint = new StatusesFilterEndpoint();
 		hosebirdEndpoint.trackTerms(terms);
 		Authentication hosebirdAuth = new OAuth1(API_KEY, API_SECRET_KEY, ACCESS_TOKEN, ACCESS_TOKEN_SECRET);
